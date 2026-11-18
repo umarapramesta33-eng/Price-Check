@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14243b"><title>PriceCheck — Smart Price & Cashier</title>
+<style>
+:root{--navy:#14243b;--cream:#f7f4ec;--paper:#fffdf8;--yellow:#f1d783;--muted:#7d8794;--line:#e7e2d7}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--navy);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--navy);color:white;padding:28px 20px 34px;border-radius:0 0 28px 28px}.wrap{max-width:720px;margin:auto;padding:0 18px}
+.top{display:flex;justify-content:space-between;align-items:center}.brand{font-size:12px;letter-spacing:2px;color:var(--yellow);font-weight:800}.pill{font-size:10px;border:1px solid #ffffff55;border-radius:99px;padding:7px 10px}
+h1{font:500 clamp(34px,8vw,50px)/1.05 Georgia,serif;margin:26px 0 8px}.sub{color:#c8d0da;font-size:14px}main{padding:22px 0 40px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:15px;box-shadow:0 8px 25px #14243b0a}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}h2{font-size:16px;margin:0}.step{font-size:10px;letter-spacing:1.4px;color:var(--muted);font-weight:800}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:700;color:#566274;margin-bottom:7px}
+input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font:inherit;font-size:15px;background:white;color:var(--navy)}input:focus{outline:2px solid #20365333;border-color:#203653}
+button{border:0;border-radius:13px;padding:14px 17px;background:var(--navy);color:white;font:inherit;font-weight:750;cursor:pointer}.secondary{background:#ece8de;color:var(--navy)}
+.actions{display:flex;gap:10px;margin-top:15px}.actions button{flex:1}.note{font-size:12px;color:var(--muted);line-height:1.6}.result{display:none}
+.category{display:flex;justify-content:space-between;align-items:center;background:#f2efe7;padding:15px;border-radius:14px;margin-bottom:12px}.cat{font-size:22px;font-weight:850}
+.line{display:flex;justify-content:space-between;gap:12px;padding:8px 0;font-size:14px;color:#566274}.line strong{color:var(--navy);text-align:right}
+.receipt{border-top:1px dashed #c9c2b4;margin-top:14px;padding-top:12px}.total{border-top:1px solid var(--line);margin-top:6px;padding-top:13px;font-size:17px;font-weight:850}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:6px 0 20px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.actions{flex-direction:column}.card{padding:17px}}
+@media print{header{border-radius:0}.actions{display:none}body{background:white}.card{box-shadow:none}}
+</style></head>
+<body><header><div class="wrap"><div class="top"><div class="brand">PC / PRICECHECK</div><div class="pill">SMART PRICE & CASHIER</div></div><h1>Know the price.<br>Check out smarter.</h1><p class="sub">Pengecek kategori harga dan kasir sederhana.</p></div></header>
+<main class="wrap"><section class="card"><div class="head"><h2>Detail barang</h2><span class="step">01 / INPUT</span></div>
+<div class="grid"><div class="full"><label for="nama">Nama barang</label><input id="nama" placeholder="Contoh: T-Shirt" maxlength="60"></div>
+<div><label for="harga">Harga satuan (Rp)</label><input id="harga" type="number" min="1" step="1" placeholder="75000"></div>
+<div><label for="jumlah">Jumlah barang</label><input id="jumlah" type="number" min="1" step="1" placeholder="2"></div>
+<div class="full"><label for="bayar">Uang pembayaran (Rp)</label><input id="bayar" type="number" min="0" step="1" placeholder="150000"></div></div>
+<div class="actions"><button onclick="calculate()">Hitung transaksi ↗</button><button class="secondary" onclick="resetForm()">Reset</button></div>
+<p class="note">Masukkan angka tanpa titik atau koma. Diskon 10% berlaku jika subtotal minimal Rp100.000.</p></section>
+<section class="card result" id="result" aria-live="polite"><div class="head"><h2>Hasil PriceCheck</h2><span class="step">02 / RESULT</span></div>
+<div class="category"><div><div class="step">KATEGORI HARGA</div><div class="cat" id="kategori">—</div></div><div id="symbol" style="font-size:28px">✦</div></div>
+<div class="line"><span>Nama barang</span><strong id="rNama">—</strong></div><div class="line"><span>Harga satuan</span><strong id="rHarga">—</strong></div><div class="line"><span>Jumlah</span><strong id="rJumlah">—</strong></div>
+<div class="receipt"><div class="line"><span>Subtotal</span><strong id="subtotal">—</strong></div><div class="line"><span>Diskon</span><strong id="diskon">—</strong></div><div class="line total"><span>Total bayar</span><strong id="total">—</strong></div><div class="line"><span>Uang pembayaran</span><strong id="rBayar">—</strong></div><div class="line total"><span id="balanceLabel">Kembalian</span><strong id="balance">—</strong></div></div>
+<p class="note" id="status"></p><div class="actions"><button class="secondary" onclick="window.print()">Cetak / Simpan struk</button></div></section>
+<footer>PRICECHECK · SIMPLE TOOLS FOR EVERYDAY SHOPPING</footer></main>
+<script>
+const rp=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n);
+function calculate(){const nama=document.getElementById('nama').value.trim(),harga=Number(document.getElementById('harga').value),jumlah=Number(document.getElementById('jumlah').value),bayar=Number(document.getElementById('bayar').value);
+if(!nama||!Number.isInteger(harga)||harga<=0||!Number.isInteger(jumlah)||jumlah<=0||!Number.isFinite(bayar)||bayar<0){alert('Lengkapi semua data dengan benar. Masukkan angka tanpa titik atau koma.');return}
+let kategori,warna;if(harga<20000){kategori='MURAH';warna='#28765a'}else if(harga<=50000){kategori='NORMAL';warna='#a17b1e'}else{kategori='MAHAL';warna='#b64e4e'}
+const subtotal=harga*jumlah,diskon=subtotal>=100000?Math.floor(subtotal*.1):0,total=subtotal-diskon;
+document.getElementById('kategori').textContent=kategori;document.getElementById('kategori').style.color=warna;document.getElementById('symbol').textContent='●';document.getElementById('symbol').style.color=warna;
+[['rNama',nama],['rHarga',rp(harga)],['rJumlah',jumlah],['subtotal',rp(subtotal)],['diskon',rp(diskon)],['total',rp(total)],['rBayar',rp(bayar)]].forEach(([id,v])=>document.getElementById(id).textContent=v);
+document.getElementById('balanceLabel').textContent=bayar>=total?'Kembalian':'Kekurangan';document.getElementById('balance').textContent=rp(Math.abs(bayar-total));document.getElementById('status').textContent=bayar>=total?'Transaksi berhasil. Terima kasih sudah berbelanja!':'Pembayaran belum mencukupi. Silakan tambahkan pembayaran.';
+document.getElementById('result').style.display='block';document.getElementById('result').scrollIntoView({behavior:'smooth'});}
+function resetForm(){['nama','harga','jumlah','bayar'].forEach(id=>document.getElementById(id).value='');document.getElementById('result').style.display='none'}
+</script></body></html>
